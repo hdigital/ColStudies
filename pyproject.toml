@@ -1,0 +1,11 @@
+[project]
+name = "ColStudies"
+version = "0.1"
+description = "A  lightweight user interface to the Colectica Repository API"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT License" }
+maintainers = [{ name = "Wolfgang Zenk-Möltgen" }]
+
+[project.urls]
+Repository = "https://github.com/hdigital/ColStudies.git"
