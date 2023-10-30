@@ -6,189 +6,225 @@ import json
 import justpy as jp
 import globalvars as g
 import traceback
-import colecticaapi as c 
+import colecticaapi as c
 import util.edxml as ed
-import util.dara as dara 
+import util.dara as dara
 import xml.etree.ElementTree as ET
-import os 
-    
-def study(request):
+import os
 
+
+def study(request):
     wp = g.templatewp()
-    
-    try: 
-    
-            
-        #start page     
-            
+
+    try:
+        # start page
+
         if g.loggedin:
             agency = request.path_params["agency"]
             Id = request.path_params["id"]
-            
-            #back to study button
-            buttonsdiv = jp.Div(text='', a=wp, classes=g.menuul, style='display: flex;')
-            studybutton = jp.A(text='Study', href='/study/' + agency + '/' + Id, a=buttonsdiv, classes=g.button)
-            
-            wp.add(jp.P(text='Searching for study with agency ' + agency + ' and id ' + Id, classes='m-2'))
-            
-                    
+
+            # back to study button
+            buttonsdiv = jp.Div(text="", a=wp, classes=g.menuul, style="display: flex;")
+            studybutton = jp.A(
+                text="Study",
+                href="/study/" + agency + "/" + Id,
+                a=buttonsdiv,
+                classes=g.button,
+            )
+
+            wp.add(
+                jp.P(
+                    text="Searching for study with agency " + agency + " and id " + Id,
+                    classes="m-2",
+                )
+            )
+
             myddixml = {}
-            
-            #create table grid for study 
+
+            # create table grid for study
             ###
             grid_options = GetGridOptions()
-            grid = jp.AgGrid(a=wp, options=grid_options, style='height: 320px;width: 800px;margin: 0.1em;' ) #style='height: 200px; width: 300px; margin: 0.25em'
-            grid.html_columns = [1,2]
+            grid = jp.AgGrid(
+                a=wp,
+                options=grid_options,
+                style="height: 320px;width: 800px;margin: 0.1em;",
+            )  # style='height: 200px; width: 300px; margin: 0.25em'
+            grid.html_columns = [1, 2]
             if True:
-                #agency = item['AgencyId']
-                #Id = item['Identifier'] 
-                Title = ''
-                TitleEN = ''
-                StudyNo=''
-                StudyDOI=''
-                StudyVersion=''
-                Version=''
-                
-                result = c.get_an_item(agency, Id) #test for getting the complete item, with DDI xml 
-                if str(result[0])=='200':
-                    print('Study found: '+ Id) 
-                                            
-                    Version=result[1]['Version']
-                    if result[1]['Item'] is not None:
-                        StudyNo=ed.getStudyNo(result[1]['Item'])
-                        studybutton.text = "Study " + StudyNo
-                        
-                    AddGridRows(grid, agency, Id, Version, result)
-                    
-                    #Buttons
-                    buttonsdiv = jp.Div(text='', a=wp, classes=g.menuul, style='display: flex;')
-                    jp.A(text='DOI Info', href='/doiinfo/' + agency + '/' + Id, a=buttonsdiv, classes=g.darabutton)
-                    
-                    jp.A(text='STAR Info', href='/starinfo/' + agency + '/' + Id, a=buttonsdiv, classes=g.starbutton)
-                    
-                    
-                    infodiv = jp.Div(text='', a=wp)
-                    xmlstatus = jp.Span(text='', a=infodiv, classes='text-red-700 whitespace-pre font-mono')
-                    
-                else:
-                    print('Error get_an_item, status ' + str(result[0]))
-                    wp.add(jp.P(text='Error get_an_item, status ' + str(result[0]), classes='m-2'))
-        
-        else:
-            wp.add(jp.P(text='You are not logged in.', classes='m-2'))
+                # agency = item['AgencyId']
+                # Id = item['Identifier']
+                Title = ""
+                TitleEN = ""
+                StudyNo = ""
+                StudyDOI = ""
+                StudyVersion = ""
+                Version = ""
 
-    except Exception as e: 
-        print('Error in ' + __file__)
-        print('Error '+str(e))        
+                result = c.get_an_item(
+                    agency, Id
+                )  # test for getting the complete item, with DDI xml
+                if str(result[0]) == "200":
+                    print("Study found: " + Id)
+
+                    Version = result[1]["Version"]
+                    if result[1]["Item"] is not None:
+                        StudyNo = ed.getStudyNo(result[1]["Item"])
+                        studybutton.text = "Study " + StudyNo
+
+                    AddGridRows(grid, agency, Id, Version, result)
+
+                    # Buttons
+                    buttonsdiv = jp.Div(
+                        text="", a=wp, classes=g.menuul, style="display: flex;"
+                    )
+                    jp.A(
+                        text="DOI Info",
+                        href="/doiinfo/" + agency + "/" + Id,
+                        a=buttonsdiv,
+                        classes=g.darabutton,
+                    )
+
+                    jp.A(
+                        text="STAR Info",
+                        href="/starinfo/" + agency + "/" + Id,
+                        a=buttonsdiv,
+                        classes=g.starbutton,
+                    )
+
+                    infodiv = jp.Div(text="", a=wp)
+                    xmlstatus = jp.Span(
+                        text="",
+                        a=infodiv,
+                        classes="text-red-700 whitespace-pre font-mono",
+                    )
+
+                else:
+                    print("Error get_an_item, status " + str(result[0]))
+                    wp.add(
+                        jp.P(
+                            text="Error get_an_item, status " + str(result[0]),
+                            classes="m-2",
+                        )
+                    )
+
+        else:
+            wp.add(jp.P(text="You are not logged in.", classes="m-2"))
+
+    except Exception as e:
+        print("Error in " + __file__)
+        print("Error " + str(e))
         print(traceback.format_exc())
-        
+
     return wp
-    
+
+
 def AddGridRows(grid, agency, Id, Version, result):
-    #gridType: StudyGrid
-    
+    # gridType: StudyGrid
+
     try:
-    
         myddixml = {}
 
-        if result[1]['Item'] is not None:
-            myddixml[Id]=result[1]['Item']
-            #print(myddixml[Id]) #contains Fragment with StudyUnit
-            
-            StudyNo=ed.getStudyNo(myddixml[Id])
-            #use Dataset: StudyDOI=ed.getStudyDOI(myddixml[Id])
-            #use Dataset: StudyVersion=ed.getStudyVersion(myddixml[Id])
-            Version=ed.getVersion(myddixml[Id])
-            #print(StudyNo, StudyVersion, StudyDOI)
-            
-            #Get the PhysicalInstanceReference
-            addxml=''
-            pixml=''
-            ref = ed.get_reference(myddixml[Id], './/StudyUnit/PhysicalInstanceReference')
-            itm = c.get_an_item_version(ref['Agency'], ref['ID'], ref['Version'])
+        if result[1]["Item"] is not None:
+            myddixml[Id] = result[1]["Item"]
+            # print(myddixml[Id]) #contains Fragment with StudyUnit
+
+            StudyNo = ed.getStudyNo(myddixml[Id])
+            # use Dataset: StudyDOI=ed.getStudyDOI(myddixml[Id])
+            # use Dataset: StudyVersion=ed.getStudyVersion(myddixml[Id])
+            Version = ed.getVersion(myddixml[Id])
+            # print(StudyNo, StudyVersion, StudyDOI)
+
+            # Get the PhysicalInstanceReference
+            addxml = ""
+            pixml = ""
+            ref = ed.get_reference(
+                myddixml[Id], ".//StudyUnit/PhysicalInstanceReference"
+            )
+            itm = c.get_an_item_version(ref["Agency"], ref["ID"], ref["Version"])
             if itm is not None:
-                if 'Item' in itm[1]:
-                    addxml=itm[1]['Item']
-            if not addxml=='':
-                ##new functions in ed.: 
+                if "Item" in itm[1]:
+                    addxml = itm[1]["Item"]
+            if not addxml == "":
+                ##new functions in ed.:
                 StudyDOI = ed.getDatasetDOI(addxml)
                 StudyVersion = ed.getDatasetVersion(addxml)
-                #print(StudyDOI, StudyVersion)
+                # print(StudyDOI, StudyVersion)
             else:
-                print('No PhysicalInstanceReference found!')
-            
-            #default URL https://search.gesis.org/research_data/ZA3811?doi=10.4232/1.3811
-            #
-            #set default URL here - is not editable in Colectica Designer at the moment
-            #
-            #        
-            StudyURL = 'https://search.gesis.org/research_data/' + StudyNo + '?doi=' + StudyDOI
-            
+                print("No PhysicalInstanceReference found!")
 
-            
-            ##new functions in ed.: 
-            Title = ed.getStudyTitle(myddixml[Id], 'de') 
-            TitleEN = ed.getStudyTitle(myddixml[Id], 'en')
-            Abstract = ed.getAbstract(myddixml[Id], 'de') 
-            AbstractEN = ed.getAbstract(myddixml[Id], 'en')
-                    
-            AccessClass = ed.getAccessClass(myddixml[Id], 'en')
-            if AccessClass=='':
-                AccessClass = ed.getAccessClass(myddixml[Id], 'en')
-            
-            
+            # default URL https://search.gesis.org/research_data/ZA3811?doi=10.4232/1.3811
+            #
+            # set default URL here - is not editable in Colectica Designer at the moment
+            #
+            #
+            StudyURL = (
+                "https://search.gesis.org/research_data/" + StudyNo + "?doi=" + StudyDOI
+            )
+
+            ##new functions in ed.:
+            Title = ed.getStudyTitle(myddixml[Id], "de")
+            TitleEN = ed.getStudyTitle(myddixml[Id], "en")
+            Abstract = ed.getAbstract(myddixml[Id], "de")
+            AbstractEN = ed.getAbstract(myddixml[Id], "en")
+
+            AccessClass = ed.getAccessClass(myddixml[Id], "en")
+            if AccessClass == "":
+                AccessClass = ed.getAccessClass(myddixml[Id], "en")
+
         else:
-            print('Error get_an_item, no Item, status ' + str(result[0]))
-            wp.add(jp.P(text='Error get_an_item, no Item, status ' + str(result[0]), classes='m-2'))
-        
-        StudyDOI = "https://doi.org/" + StudyDOI    
-        
-        if not StudyDOI=='':
-            StudyDOILink = '<a href=' + StudyDOI + '>' + StudyDOI + '</a>'
-        if not StudyURL=='':
-            StudyURLLink = '<a href=' + StudyURL + '>' + StudyURL + '</a>'
-            
-        DetailsLink = ''
-                            
-        #add fields                   
-        row = {'Field': 'Agency', 'Value': agency, 'Details': DetailsLink}
-        grid.options.rowData.append(row)  
-        row = {'Field': 'ID', 'Value': Id, 'Details': DetailsLink}
-        grid.options.rowData.append(row)  
-        row = {'Field': 'Version', 'Value': Version, 'Details': DetailsLink}
-        grid.options.rowData.append(row)  
-        
-        row = {'Field': 'Title', 'Value': Title, 'Details': DetailsLink}
-        grid.options.rowData.append(row)  
-        row = {'Field': 'TitleEN', 'Value': TitleEN, 'Details': DetailsLink}
-        grid.options.rowData.append(row)  
-        
-        
-        row = {'Field': 'StudyNo', 'Value': StudyNo, 'Details': DetailsLink}
-        grid.options.rowData.append(row)  
-        row = {'Field': 'StudyVersion', 'Value': StudyVersion, 'Details': DetailsLink}
-        grid.options.rowData.append(row)  
+            print("Error get_an_item, no Item, status " + str(result[0]))
+            wp.add(
+                jp.P(
+                    text="Error get_an_item, no Item, status " + str(result[0]),
+                    classes="m-2",
+                )
+            )
 
-        row = {'Field': 'AccessClass', 'Value': AccessClass, 'Details': DetailsLink}
-        grid.options.rowData.append(row)  
+        StudyDOI = "https://doi.org/" + StudyDOI
 
+        if not StudyDOI == "":
+            StudyDOILink = "<a href=" + StudyDOI + ">" + StudyDOI + "</a>"
+        if not StudyURL == "":
+            StudyURLLink = "<a href=" + StudyURL + ">" + StudyURL + "</a>"
 
-        row = {'Field': 'StudyDOI', 'Value': StudyDOILink, 'Details': DetailsLink}
-        grid.options.rowData.append(row)  
-        
-        row = {'Field': 'Abstract', 'Value': Abstract, 'Details': DetailsLink}
-        grid.options.rowData.append(row)  
-        row = {'Field': 'AbstractEN', 'Value': AbstractEN, 'Details': DetailsLink}
-        grid.options.rowData.append(row)  
-            
-    except Exception as e: 
-        print('Error in ' + __file__)
-        print('Error '+str(e))        
+        DetailsLink = ""
+
+        # add fields
+        row = {"Field": "Agency", "Value": agency, "Details": DetailsLink}
+        grid.options.rowData.append(row)
+        row = {"Field": "ID", "Value": Id, "Details": DetailsLink}
+        grid.options.rowData.append(row)
+        row = {"Field": "Version", "Value": Version, "Details": DetailsLink}
+        grid.options.rowData.append(row)
+
+        row = {"Field": "Title", "Value": Title, "Details": DetailsLink}
+        grid.options.rowData.append(row)
+        row = {"Field": "TitleEN", "Value": TitleEN, "Details": DetailsLink}
+        grid.options.rowData.append(row)
+
+        row = {"Field": "StudyNo", "Value": StudyNo, "Details": DetailsLink}
+        grid.options.rowData.append(row)
+        row = {"Field": "StudyVersion", "Value": StudyVersion, "Details": DetailsLink}
+        grid.options.rowData.append(row)
+
+        row = {"Field": "AccessClass", "Value": AccessClass, "Details": DetailsLink}
+        grid.options.rowData.append(row)
+
+        row = {"Field": "StudyDOI", "Value": StudyDOILink, "Details": DetailsLink}
+        grid.options.rowData.append(row)
+
+        row = {"Field": "Abstract", "Value": Abstract, "Details": DetailsLink}
+        grid.options.rowData.append(row)
+        row = {"Field": "AbstractEN", "Value": AbstractEN, "Details": DetailsLink}
+        grid.options.rowData.append(row)
+
+    except Exception as e:
+        print("Error in " + __file__)
+        print("Error " + str(e))
         print(traceback.format_exc())
-    
+
 
 def GetGridOptions():
-    
     grid_options = """
     {
         defaultColDef: {
@@ -206,11 +242,5 @@ def GetGridOptions():
           rowData: []
     }
     """
-    
-        
+
     return grid_options
-    
-
-
-
-
