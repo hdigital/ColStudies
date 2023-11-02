@@ -20,6 +20,7 @@ Added functions to manage local Files (STAR folders) and send them to DBKEdit da
 3) To start the server, double-click on `StartColStudies.cmd`
     - basic information about status and errors are shown in the console
     - you can also use python to start the main file: colstudies.py
+    - `python web/colstudies.py`
 
 4) This will open your default browser with the start page
     - click 'reload' to refresh if it does not so automatically
@@ -30,7 +31,9 @@ Added functions to manage local Files (STAR folders) and send them to DBKEdit da
 
 ColStudies uses JustPy and Python 3
 
+Install Python dependencies with
 
+`python -m pip install -r requirements.txt`
 
 ## License
 
