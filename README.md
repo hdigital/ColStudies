@@ -35,6 +35,13 @@ Install Python dependencies with
 
 `python -m pip install -r requirements.txt`
 
+Pin and upgrade dependencies with
+
+````
+python -m pip install pip-tools
+python -m piptools compile --upgrade --extra dev --generate-hashes pyproject.toml
+```
+
 ## License
 
 License: MIT License

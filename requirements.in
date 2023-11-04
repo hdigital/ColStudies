@@ -1,6 +1,0 @@
-justpy
-
-## DEVELOPMENT
-
-pip-tools  # Python package dependency management
-ruff       # Python code formatter, linter, style checker
